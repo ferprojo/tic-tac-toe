@@ -3,12 +3,6 @@ import os
 import time
 
 
-class treeNode:
-    nextNodes = []
-
-class tree:
-    firstNode = []
-
 class bestMove:
     i = 0
     j = 0
@@ -31,7 +25,6 @@ def movesLeft():
                 return True
     return False
 
-# Funcion heuristica para determinar la puntuacion por movimiento
 def minMax(isMax, alpha, beta):
     # Si no se puede realizar ningun movimiento, devolver la evaluacion
     if not movesLeft():
@@ -56,7 +49,7 @@ def minMax(isMax, alpha, beta):
                     maxVal = max(maxVal, eval)
                     alpha = max(alpha, eval)
                     board[i,j] = 0
-                    
+
                 j = j + 1
             
             i = i +1
@@ -93,6 +86,7 @@ def minMax(isMax, alpha, beta):
         retval.j = bj
         return retval
 
+# Funcion heuristica para determinar la puntuacion por movimiento
 def evalFunc():
 
     playerScore = 0
@@ -197,7 +191,7 @@ def evalFunc():
     return pcScore - playerScore
             
 
-
+# Determinar si el jugador ha ganado
 def hasWon(player=1):
 
     # Ganada por fila
@@ -240,12 +234,14 @@ def getPlayerInput(player = 1):
         print("Fila o columna invalida")
         getPlayerInput()
 
+# Limpiar la pantalla
 def clearScreen():
         if os.name == 'posix':
             os.system('clear')
         else:
             os.system('cls')
 
+# Imprimir en consola el tablero
 def printBoard():
     for row in board:
         for piece in row:
@@ -257,56 +253,10 @@ def printBoard():
                 print("O", end='')
         print("\n")
 
-def makeAIMove():
-    if(hasWon(1) == True or hasWon(2) == True):
-        print("Ganada")
-        time.sleep(1)
-        return
-
-    bestVal = -1000
-
-    
-    bi = -1
-    bj = -1
-    i = 0
-    j = 0
-    for row in board:
-        j = 0
-        for col in row:
-            if(col == 0):
-                board[i,j] = 1
-
-                moveVal = minMax(False)
-
-                board[i,j] = 0
-
-                if(moveVal > bestVal):
-                    bestVal = moveVal
-                    bi = i
-                    bj = j
-
-            j = j + 1
-        i = i + 1
-    
-    board[bi,bj] = 2
-
-
 
 def main():
-    gameWon = False
-    '''
-    while(hasWon() == hasWon(2) == False):
-        clearScreen()
-        printBoard()  
-        print(evalFunc())
-        getPlayerInput()
-        printBoard()        
-        print(evalFunc())
-        getPlayerInput(2)'''
-
 
     while(hasWon() == hasWon(2) == False and movesLeft()):
-        
         alpha = -1000
         beta = 1000
 
@@ -316,11 +266,6 @@ def main():
         printBoard()
         print(evalFunc())
         getPlayerInput()
-        
-        
-        
-        
-        
 
     clearScreen()
     printBoard()
@@ -330,4 +275,6 @@ def main():
         print("Perdiste!")
     else:
         print("Empate")
+
+        
 main()
