@@ -1,7 +1,18 @@
 import numpy as np
 import os
 import time
+import random
 
+
+class Tree:
+    startNode = None
+
+class Node:
+    def __init__(self) -> None:
+        self.vertexId = None
+        self.parentNode = None
+        self.nextNodes = []
+        self.val = []
 
 class bestMove:
     i = 0
@@ -18,6 +29,13 @@ board = np.array([
                 [0,0,0],
                 [0,0,0]])
 
+emptyBoard = np.array([
+                [0,0,0], 
+                [0,0,0],
+                [0,0,0]])
+execcount = 0
+
+
 def movesLeft():
     for row in board:
         for col in row:
@@ -25,10 +43,13 @@ def movesLeft():
                 return True
     return False
 
-def minMax(isMax, alpha, beta):
+def minMax(isMax, alpha, beta, depth = 16):
+    global execcount
+    execcount += 1
+
     # Si no se puede realizar ningun movimiento, devolver la evaluacion
-    if not movesLeft():
-        val = evalFunc()
+    if not movesLeft() or depth == 0:
+        val = simpleEvalFunc()
         retval = bestMove()
         retval.val = val
         return retval
@@ -42,7 +63,7 @@ def minMax(isMax, alpha, beta):
             for col in row:
                 if(col == 0):
                     board[i,j] = 2
-                    eval = minMax(False, alpha, beta).val
+                    eval = minMax(False, alpha, beta, depth - 1).val
                     if(eval >= maxVal):
                         bi = i
                         bj = j
@@ -68,7 +89,7 @@ def minMax(isMax, alpha, beta):
             for col in row:
                 if(col == 0):
                     board[i,j] = 1
-                    eval = minMax(True, alpha, beta).val
+                    eval = minMax(True, alpha, beta, depth - 1).val
                     if(eval <= minVal):
                         bi = i
                         bj = j
@@ -189,7 +210,14 @@ def evalFunc():
             elif(player == 2):
                 playerScore += 10
     return pcScore - playerScore
-            
+
+def simpleEvalFunc():
+    if(hasWon(1)):
+        return -100     # Jugador gana
+    elif(hasWon(2)):
+        return 100      # Computadora gana
+    else:
+        return 0
 
 # Determinar si el jugador ha ganado
 def hasWon(player=1):
@@ -255,17 +283,24 @@ def printBoard():
 
 
 def main():
+    global execcount
 
     while(hasWon() == hasWon(2) == False and movesLeft()):
-        alpha = -1000
-        beta = 1000
-
+        if(hasWon() == hasWon(2) == False and movesLeft()):
+            if((board == emptyBoard).all()):
+                board[random.randint(0,2), random.randint(0,2)] = 2
+            else:
+                move = minMax(True, -1000, 1000, 60)
+                board[move.i, move.j] = 2
         clearScreen()
-        move = minMax(True, alpha, beta)
-        board[move.i, move.j] = 2
         printBoard()
-        print(evalFunc())
-        getPlayerInput()
+        print(execcount)
+        if(hasWon() == hasWon(2) == False and movesLeft()):
+          getPlayerInput()
+        
+        
+        
+        execcount = 0
 
     clearScreen()
     printBoard()
@@ -276,5 +311,21 @@ def main():
     else:
         print("Empate")
 
-        
+
+def getExecutionTimes(depth = 60):
+    global execcount
+    f = open("exectime" + str(depth) + "dpt.csv", "w")
+    for i in range(0, 100):
+        execcount = 0
+        print(i)
+        start_time = time.time()
+        minMax(True, -1000, 1000, depth)
+        f.write(str(time.time() - start_time) + "\n")
+        print(execcount)
+    
+    f.close()
+
 main()
+
+# getExecutionTimes(60)
+
