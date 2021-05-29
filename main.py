@@ -3,17 +3,6 @@ import os
 import time
 import random
 
-
-class Tree:
-    startNode = None
-
-class Node:
-    def __init__(self) -> None:
-        self.vertexId = None
-        self.parentNode = None
-        self.nextNodes = []
-        self.val = []
-
 class bestMove:
     i = 0
     j = 0
@@ -22,40 +11,29 @@ class bestMove:
     beta = 0
 
 
-# Creacion del tablero
-# 0 = vacio, 1 = jugador, 2 = computadora
-board = np.array([
-                [0,0,0], 
-                [0,0,0],
-                [0,0,0]])
-
-emptyBoard = np.array([
-                [0,0,0], 
-                [0,0,0],
-                [0,0,0]])
 execcount = 0
 
 
-def movesLeft():
+def movesLeft(board):
     for row in board:
         for col in row:
             if(col == 0):
                 return True
     return False
 
-def minMax(isMax, alpha, beta, depth = 16):
+def minMax(isMax, board, alpha, beta, depth = 60):
     global execcount
     execcount += 1
 
     # Si no se puede realizar ningun movimiento, devolver la evaluacion
-    if not movesLeft() or depth == 0:
-        val = simpleEvalFunc()
+    if not movesLeft(board) or depth == 0 or hasWon(board, 1) or hasWon(board, 2):
+        val = simpleEvalFunc(board)
         retval = bestMove()
         retval.val = val
         return retval
 
     if isMax:
-        maxVal = -1000
+        maxVal = -10000
         bi, bj = 0, 0
         i = 0
         for row in board:
@@ -63,12 +41,14 @@ def minMax(isMax, alpha, beta, depth = 16):
             for col in row:
                 if(col == 0):
                     board[i,j] = 2
-                    eval = minMax(False, alpha, beta, depth - 1).val
-                    if(eval >= maxVal):
+                    eval = minMax(False, board, alpha, beta, depth - 1).val
+                    if(eval > maxVal):
                         bi = i
                         bj = j
+                        #printBoard(board)
+                        #print(str(eval) + "  " + str(maxVal))
+                        #print("\n\n\n")
                     maxVal = max(maxVal, eval)
-                    alpha = max(alpha, eval)
                     board[i,j] = 0
 
                 j = j + 1
@@ -81,7 +61,7 @@ def minMax(isMax, alpha, beta, depth = 16):
         retval.j = bj
         return retval
     else:
-        minVal = 1000
+        minVal = 10000
         bi, bj = 0,0
         i = 0
         for row in board:
@@ -89,12 +69,14 @@ def minMax(isMax, alpha, beta, depth = 16):
             for col in row:
                 if(col == 0):
                     board[i,j] = 1
-                    eval = minMax(True, alpha, beta, depth - 1).val
-                    if(eval <= minVal):
+                    eval = minMax(True,board, alpha, beta, depth - 1).val
+                    if(eval < minVal):
                         bi = i
                         bj = j
+                        #printBoard(board)
+                        #print(str(eval) + "  " + str(minVal))
+                        #print("\n\n\n")
                     minVal = min(minVal, eval)
-                    beta = min(beta, eval)
                     board[i,j] = 0
 
                 j += 1
@@ -108,15 +90,15 @@ def minMax(isMax, alpha, beta, depth = 16):
         return retval
 
 # Funcion heuristica para determinar la puntuacion por movimiento
-def evalFunc():
+def evalFunc(board):
 
     playerScore = 0
     pcScore = 0
 
     if(hasWon(1)):
-        return -100     # Jugador gana
+        return -500     # Jugador gana
     elif(hasWon(2)):
-        return 100      # Computadora gana
+        return 500      # Computadora gana
     else:
         for row in board:
             pc = 0
@@ -211,16 +193,16 @@ def evalFunc():
                 playerScore += 10
     return pcScore - playerScore
 
-def simpleEvalFunc():
-    if(hasWon(1)):
-        return -100     # Jugador gana
-    elif(hasWon(2)):
-        return 100      # Computadora gana
+def simpleEvalFunc(board):
+    if(hasWon(board, 2)):
+        return 100     # Jugador gana
+    elif(hasWon(board, 1)):
+        return -100      # Computadora gana
     else:
         return 0
 
 # Determinar si el jugador ha ganado
-def hasWon(player=1):
+def hasWon(board, player=1):
 
     # Ganada por fila
     for row in board:
@@ -245,22 +227,23 @@ def hasWon(player=1):
     return False
 
 # Funcion para obtener el movimiento del jugador
-def getPlayerInput(player = 1):
+def getPlayerInput(board, player = 1):
     row = input("Introduzca la fila del movimiento deseado (1-3)")
     col = input("Introduzca la columna del movimiento deseado (1-3)")
     try:
         if(board[int(row) - 1, int(col) - 1] == 0):
             board[int(row) - 1, int(col) - 1] = player
+            return [row, col]
         else:
             clearScreen()
-            printBoard()
+            printBoard(board)
             print("Lugar en el tablero ocupado")
-            getPlayerInput()
+            getPlayerInput(board)
     except:
         clearScreen()
-        printBoard()
+        printBoard(board)
         print("Fila o columna invalida")
-        getPlayerInput()
+        getPlayerInput(board)
 
 # Limpiar la pantalla
 def clearScreen():
@@ -270,7 +253,7 @@ def clearScreen():
             os.system('cls')
 
 # Imprimir en consola el tablero
-def printBoard():
+def printBoard(board):
     for row in board:
         for piece in row:
             if(piece == 0):
@@ -285,41 +268,51 @@ def printBoard():
 def main():
     global execcount
 
-    while(hasWon() == hasWon(2) == False and movesLeft()):
-        if(hasWon() == hasWon(2) == False and movesLeft()):
-            if((board == emptyBoard).all()):
-                board[random.randint(0,2), random.randint(0,2)] = 2
-            else:
-                move = minMax(True, -1000, 1000, 60)
-                board[move.i, move.j] = 2
+    # Creacion del tablero
+    # 0 = vacio, 1 = jugador, 2 = computadora
+    board = np.array([
+                    [0,0,0], 
+                    [0,0,0],
+                    [0,0,0]])
+
+    emptyBoard = np.array([
+                    [0,0,0], 
+                    [0,0,0],
+                    [0,0,0]])
+
+    while(hasWon(board) == hasWon(board, 2) == False and movesLeft(board)):
+        
         clearScreen()
-        printBoard()
+        printBoard(board)
         print(execcount)
-        if(hasWon() == hasWon(2) == False and movesLeft()):
-          getPlayerInput()
+        if(hasWon(board) == hasWon(board, 2) == False and movesLeft(board)):
+          getPlayerInput(board)
+        if(hasWon(board) == hasWon(board, 2) == False and movesLeft(board)):
+            move = minMax(True, board, -1000, 1000, 60)
+            board[move.i, move.j] = 2
         
         
         
         execcount = 0
 
     clearScreen()
-    printBoard()
-    if(hasWon(1)):
+    printBoard(board)
+    if(hasWon(board, 1)):
         print("Ganaste!")
-    elif(hasWon(2)):
+    elif(hasWon(board, 2)):
         print("Perdiste!")
     else:
         print("Empate")
 
 
-def getExecutionTimes(depth = 60):
+def getExecutionTimes(board, depth = 60):
     global execcount
     f = open("exectime" + str(depth) + "dpt.csv", "w")
     for i in range(0, 100):
         execcount = 0
         print(i)
         start_time = time.time()
-        minMax(True, -1000, 1000, depth)
+        minMax(True, board, -1000, 1000, depth)
         f.write(str(time.time() - start_time) + "\n")
         print(execcount)
     
@@ -327,5 +320,7 @@ def getExecutionTimes(depth = 60):
 
 main()
 
-# getExecutionTimes(60)
+
+
+# getExecutionTimes()
 
