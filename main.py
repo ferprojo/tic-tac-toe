@@ -41,8 +41,9 @@ def minMax(isMax, board, alpha, beta, depth = 60):
 
 
     # Si no se puede realizar ningun movimiento, devolver la evaluacion
-    if movesLeft(board) != 0 or depth == 0:
-        val = simpleEvalFunc(board)
+    res = movesLeft(board)
+    if res != 0 or depth == 0:
+        val = simpleEvalFunc(res)
         retval = bestMove()
         retval.val = val
         return retval
@@ -211,9 +212,9 @@ def evalFunc(board):
 def simpleEvalFunc(board):
     global execcount
     execcount += 1
-    if(hasWon(board, 2)):
+    if(board == 2):
         return 100     # Jugador gana
-    elif(hasWon(board, 1)):
+    elif(board == 1):
         return -100      # Computadora gana
     else:
         return 0
@@ -330,13 +331,5 @@ def getExecutionTimes(board, depth = 60):
 main()
 
 
-board = np.array([
-                    [0,0,0], 
-                    [0,1,0],
-                    [0,0,0]])
 
-print(movesLeft(board))
-
-
-# getExecutionTimes(board)
 
