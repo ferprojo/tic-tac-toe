@@ -15,18 +15,33 @@ execcount = 0
 
 
 def movesLeft(board):
+    
+    # Ganada por fila
     for row in board:
-        for col in row:
-            if(col == 0):
-                return True
-    return False
+        if(row[0] == row[1] == row[2] != 0):
+            return row[0]
+
+    # Ganada por columna
+    for i in range(0,3):
+        if(board[0,i] == board[1,i] == board[2,i] != 0):
+            return board[0,i]
+    
+    if(board[0,0] == board[1,1] == board[2,2] != 0):
+        return board[0,0]
+    
+    if(board[0,2] == board[1,1] == board[2,0] != 0):
+        return board[0,2]
+
+    for i in range(0,3):
+        for j in range(0,3):
+            if(board[i,j] == 0):
+                return 0
 
 def minMax(isMax, board, alpha, beta, depth = 60):
-    global execcount
-    execcount += 1
+
 
     # Si no se puede realizar ningun movimiento, devolver la evaluacion
-    if not movesLeft(board) or depth == 0 or hasWon(board, 1) or hasWon(board, 2):
+    if movesLeft(board) != 0 or depth == 0:
         val = simpleEvalFunc(board)
         retval = bestMove()
         retval.val = val
@@ -194,6 +209,8 @@ def evalFunc(board):
     return pcScore - playerScore
 
 def simpleEvalFunc(board):
+    global execcount
+    execcount += 1
     if(hasWon(board, 2)):
         return 100     # Jugador gana
     elif(hasWon(board, 1)):
@@ -210,12 +227,8 @@ def hasWon(board, player=1):
             return True
 
     # Ganada por columna
-    for col in range(0,3):
-        colIsNotValidWin = False
-        for row in board:
-            if(row[col] != player):
-                colIsNotValidWin = True
-        if not colIsNotValidWin:
+    for i in range(0,3):
+        if(board[0,i] == board[1,i] == board[2,i] == player):
             return True
     
     if(board[0,0] == board[1,1] == board[2,2] == player):
@@ -280,20 +293,16 @@ def main():
                     [0,0,0],
                     [0,0,0]])
 
-    while(hasWon(board) == hasWon(board, 2) == False and movesLeft(board)):
-        
+    while(movesLeft(board) == 0):        
         clearScreen()
         printBoard(board)
         print(execcount)
-        if(hasWon(board) == hasWon(board, 2) == False and movesLeft(board)):
+        execcount = 0
+        if(movesLeft(board) == 0):
           getPlayerInput(board)
-        if(hasWon(board) == hasWon(board, 2) == False and movesLeft(board)):
+        if(movesLeft(board) == 0):
             move = minMax(True, board, -1000, 1000, 60)
             board[move.i, move.j] = 2
-        
-        
-        
-        execcount = 0
 
     clearScreen()
     printBoard(board)
@@ -321,6 +330,13 @@ def getExecutionTimes(board, depth = 60):
 main()
 
 
+board = np.array([
+                    [0,0,0], 
+                    [0,1,0],
+                    [0,0,0]])
 
-# getExecutionTimes()
+print(movesLeft(board))
+
+
+# getExecutionTimes(board)
 
